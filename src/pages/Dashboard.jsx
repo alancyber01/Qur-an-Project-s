@@ -52,6 +52,35 @@ export default function Dashboard({ user }) {
   const todayStr = new Date().toISOString().split("T")[0];
   const audioRef = useRef(null);
 
+  // ==========================================
+  // FITUR WAKTU DAN TANGGAL REAL-TIME
+  // ==========================================
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timeString = currentTime.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const masehiDate = currentTime.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const hijriDate = new Intl.DateTimeFormat("id-ID-u-ca-islamic", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(currentTime);
+  // ==========================================
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -366,7 +395,6 @@ export default function Dashboard({ user }) {
                     className={`absolute top-0 h-full w-[45px] pointer-events-none z-10 ${isOddPage ? "-right-[45px]" : "-left-[45px]"}`}
                   >
                     {Object.keys(quranData.rasulData).map((lineNum) => {
-                      // Margin direset ke 7.5 yang sempurna dan memanjang ke horizontal (flex-row)
                       const TOP_MARGIN = 7.5;
                       const BOTTOM_MARGIN = 7.5;
                       const TEXT_HEIGHT = 100 - TOP_MARGIN - BOTTOM_MARGIN;
@@ -438,14 +466,16 @@ export default function Dashboard({ user }) {
 
       {/* HEADER & GLOBAL PROGRESS BAR */}
       <div className="flex flex-col gap-3 flex-shrink-0">
-        <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <h2 className="text-[14px] font-black text-slate-800 tracking-wide">
+        {/* BARIS 1: SAPAAN, PROGRESS & WAKTU (MENGISI SPACE KOSONG DI KANAN) */}
+        <div className="flex items-center justify-between gap-3">
+          {/* BAGIAN KIRI: Sapaan & Progress */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-[14px] font-black text-slate-800 tracking-wide truncate">
               Hai, {profile.display_name.split(" ")[0]} 👋
             </h2>
-            <div className="mt-1.5 pr-4">
+            <div className="mt-1.5 pr-2">
               <div className="flex justify-between text-[9px] font-bold text-gray-500 mb-1">
-                <span>Progress Misi Hari Ini</span>
+                <span>Progress Misi</span>
                 <span className="text-emerald-600">
                   {dailyProgressPercent}%
                 </span>
@@ -458,9 +488,26 @@ export default function Dashboard({ user }) {
               </div>
             </div>
           </div>
+
+          {/* BAGIAN KANAN: Widget Waktu Kompak */}
+          <div className="shrink-0 flex flex-col items-end bg-white p-2 rounded-xl shadow-sm border border-gray-100 min-w-[100px]">
+            <div className="text-right w-full">
+              <p className="text-[9px] font-bold text-slate-800 leading-tight truncate">
+                {masehiDate}
+              </p>
+              <p className="text-[8px] font-bold text-emerald-600 leading-tight mt-0.5 truncate">
+                {hijriDate} H
+              </p>
+            </div>
+            <div className="mt-1.5 w-full bg-emerald-50 py-1 rounded-lg flex items-center justify-center border border-emerald-100 shadow-inner">
+              <span className="text-[11px] font-black text-emerald-700 tracking-wider">
+                {timeString.replace(".", ":")}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* BANNER TARGET HALAMAN */}
+        {/* BARIS 2: BANNER TARGET HALAMAN */}
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 shadow-md relative overflow-hidden flex flex-col items-center">
           <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
 
@@ -575,7 +622,6 @@ export default function Dashboard({ user }) {
               {/* FAJAR: GAMBAR */}
               {activeWadah === "fajar" && (
                 <div className="h-full flex flex-col animate-fade-in">
-                  {/* --- TOMBOL LAYAR PENUH DIPINDAH KE SINI --- */}
                   <div className="flex justify-end mb-2 shrink-0">
                     <button
                       onClick={() => setIsFullscreen(true)}
@@ -676,7 +722,6 @@ export default function Dashboard({ user }) {
               {/* MALAM: MUSHAF BLUR 5% + RA'SUL AYAT DI SAMPINGNYA */}
               {activeWadah === "malam" && (
                 <div className="h-full flex flex-col animate-fade-in">
-                  {/* --- TOMBOL LAYAR PENUH DIPINDAH KE SINI --- */}
                   <div className="flex justify-end mb-2 shrink-0">
                     <button
                       onClick={() => setIsFullscreen(true)}
@@ -723,7 +768,6 @@ export default function Dashboard({ user }) {
                             className={`absolute top-0 h-full w-[45px] pointer-events-none z-10 ${isOddPage ? "-right-[-35px]" : "-left-[-35px]"}`}
                           >
                             {Object.keys(quranData.rasulData).map((lineNum) => {
-                              // Trik margin dikembalikan utuh ke 7.5 agar aman
                               const TOP_MARGIN = 7.5;
                               const BOTTOM_MARGIN = 7.5;
                               const TEXT_HEIGHT =
@@ -746,13 +790,11 @@ export default function Dashboard({ user }) {
                                       className="flex items-center gap-1 whitespace-nowrap"
                                       dir="rtl"
                                     >
-                                      {/* KOMPONEN KATA */}
                                       {isOddPage ? (
                                         <>
                                           <span className="font-kemenag text-[10px] leading-tight font-bold px-1.5 py-px rounded-sm shadow-sm text-slate-800 bg-white/95 border border-emerald-100/50">
                                             {item.text}
                                           </span>
-                                          {/* KOMPONEN ANGKA KURUNGAN (QCF_BSML) */}
                                           <div className="font-bsml text-emerald-600 flex items-center justify-center relative w-5 h-5 shrink-0">
                                             <span className="text-[15px] absolute">
                                               ۝
@@ -764,7 +806,6 @@ export default function Dashboard({ user }) {
                                         </>
                                       ) : (
                                         <>
-                                          {/* KOMPONEN ANGKA KURUNGAN (QCF_BSML) */}
                                           <div className="font-bsml text-emerald-600 flex items-center justify-center relative w-5 h-5 shrink-0">
                                             <span className="text-[15px] absolute">
                                               ۝
